@@ -16,6 +16,15 @@ export function DailyUsage() {
   const { data: dailyUsage, isLoading, error } = useDailyUsage();
   const currentDate = getCurrentLocalDate();
 
+  const efficiency = useMemo(
+    () => (dailyUsage ? getTokenEfficiency(dailyUsage.inputTokens, dailyUsage.outputTokens) : null),
+    [dailyUsage?.inputTokens, dailyUsage?.outputTokens],
+  );
+  const costPerMTok = useMemo(
+    () => (dailyUsage ? getCostPerMTok(dailyUsage.totalCost, dailyUsage.totalTokens) : null),
+    [dailyUsage?.totalCost, dailyUsage?.totalTokens],
+  );
+
   const accessories = error
     ? STANDARD_ACCESSORIES.ERROR
     : !dailyUsage
@@ -37,15 +46,6 @@ export function DailyUsage() {
       return null;
     }
 
-    const efficiency = useMemo(
-      () => getTokenEfficiency(dailyUsage.inputTokens, dailyUsage.outputTokens),
-      [dailyUsage.inputTokens, dailyUsage.outputTokens],
-    );
-    const costPerMTok = useMemo(
-      () => getCostPerMTok(dailyUsage.totalCost, dailyUsage.totalTokens),
-      [dailyUsage.totalCost, dailyUsage.totalTokens],
-    );
-
     return (
       <List.Item.Detail.Metadata>
         <List.Item.Detail.Metadata.Label title="Date" text={dailyUsage.date} icon={Icon.Calendar} />
@@ -59,11 +59,11 @@ export function DailyUsage() {
 
         <List.Item.Detail.Metadata.Label title="Cost Analysis" />
         <List.Item.Detail.Metadata.Label title="Total Cost" text={formatCost(dailyUsage.totalCost)} icon={Icon.Coins} />
-        <List.Item.Detail.Metadata.Label title="Cost per MTok" text={costPerMTok} />
+        <List.Item.Detail.Metadata.Label title="Cost per MTok" text={costPerMTok || "N/A"} />
         <List.Item.Detail.Metadata.Separator />
 
         <List.Item.Detail.Metadata.Label title="Efficiency Metrics" />
-        <List.Item.Detail.Metadata.Label title="Output/Input Ratio" text={efficiency} />
+        <List.Item.Detail.Metadata.Label title="Output/Input Ratio" text={efficiency || "N/A"} />
       </List.Item.Detail.Metadata>
     );
   };

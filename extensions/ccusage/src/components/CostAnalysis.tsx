@@ -32,6 +32,20 @@ export function CostAnalysis() {
   const { data: dailyUsage, isLoading: dailyLoading, error: dailyError } = useDailyUsage();
   const { topModels: models, isLoading: modelsLoading, error: modelsError } = useSessionUsage();
 
+  const costBreakdown = useMemo(() => (models ? calculateCostBreakdown(models) : { breakdown: [] }), [models]);
+  const tokenBreakdown = useMemo(() => (models ? calculateTokenBreakdown(models) : { breakdown: [] }), [models]);
+
+  const dailyCostPercentage = useMemo(
+    () => (dailyUsage && totalUsage ? calculateDailyCostPercentage(dailyUsage.totalCost, totalUsage.totalCost) : "0%"),
+    [dailyUsage?.totalCost, totalUsage?.totalCost],
+  );
+
+  const { dailyAverage, projectedMonthlyCost } = useMemo(
+    () =>
+      totalUsage ? calculateMonthlyProjection(totalUsage.totalCost) : { dailyAverage: 0, projectedMonthlyCost: 0 },
+    [totalUsage?.totalCost],
+  );
+
   const isLoading = totalLoading || dailyLoading || modelsLoading;
   const error = totalError || dailyError || modelsError;
 
@@ -54,19 +68,6 @@ export function CostAnalysis() {
     if (!totalUsage) {
       return null;
     }
-
-    const costBreakdown = useMemo(() => calculateCostBreakdown(models), [models]);
-    const tokenBreakdown = useMemo(() => calculateTokenBreakdown(models), [models]);
-
-    const dailyCostPercentage = useMemo(
-      () => (dailyUsage ? calculateDailyCostPercentage(dailyUsage.totalCost, totalUsage.totalCost) : "0%"),
-      [dailyUsage, totalUsage.totalCost],
-    );
-
-    const { dailyAverage, projectedMonthlyCost } = useMemo(
-      () => calculateMonthlyProjection(totalUsage.totalCost),
-      [totalUsage.totalCost],
-    );
 
     return (
       <List.Item.Detail.Metadata>
